@@ -1,140 +1,79 @@
-# 8 block puzzle solver using Heuristic Search
-import math
-import copy
+from collections import deque
 
-a = [
-    [1, 2, 3],
-    [4, 5, 6],
-    [7, 8, 0]
-]
-g = [
-    [2, 0, 3],
-    [1, 4, 5],
-    [7, 8, 6]
-]
+# Below lists detail all eight possible movements
+row = [-1, -1, -1, 0, 0, 1, 1, 1]
+col = [-1, 0, 1, -1, 1, -1, 0, 1]
 
 
-def get_inv_count(arr):
-    inv_count = 0
-    empty_value = 0
-    for i in range(0, 9):
-        for j in range(i + 1, 9):
-            if arr[j] != empty_value and arr[i] != empty_value and arr[i] > arr[j]:
-                inv_count += 1
-    return inv_count
+# check if it is possible to go to pixel (x, y) from the
+# current pixel. The function returns false if the pixel
+# has a different color, or it's not a valid pixel
+def isSafe(mat, x, y, target):
+    return 0 <= x < len(mat) and 0 <= y < len(mat[0]) and mat[x][y] == target
 
 
-# This function returns true
-# if given 8 puzzle is solvable.
-def is_solvable(puzzle):
-    # Count inversions in given 8 puzzle
-    inv_count = get_inv_count([j for sub in puzzle for j in sub])
+# Flood fill using BFS
+def floodfill(mat, x, y, replacement):
+    # base case
+    if not mat or not len(mat):
+        return
 
-    # return true if inversion count is even.
-    return inv_count % 2 == 0
+    # create a queue and enqueue starting pixel
+    q = deque()
+    q.append((x, y))
 
+    # get the target color
+    target = mat[x][y]
 
-# Driver code
+    # target color is same as replacement
+    if target == replacement:
+        return
 
-if is_solvable(g):
-    heuristic_costs = []
+    # break when the queue becomes empty
+    while q:
 
+        # dequeue front node and process it
+        x, y = q.popleft()
 
-    def print_puzzle(work_arr):
-        print(*work_arr[0:3], sep="\n")
+        # replace the current pixel color with that of replacement
+        mat[x][y] = replacement
 
-
-    moved_cost = {'l': math.inf, 'r': math.inf, 'u': math.inf, 'd': math.inf}
-
-
-    def calc_heuristic_val(work_arr, dir_key):
-        heur_val = 0
-        for i in range(3):
-            for j in range(3):
-                if work_arr[i][j] != g[i][j]:
-                    heur_val += 1
-        moved_cost[dir_key] = heur_val
-
-
-    def predict_moves():
-        poss_move = []
-        r, c = None, None
-        for i, row in enumerate(a):
-            if 0 in row:
-                c = row.index(0)
-                r = i
-        shift_val = None
-        for move in ["l", "r", "u", "d"]:
-            if move == "l":
-                shift_val = c - 1
-            elif move == "u":
-                shift_val = r - 1
-            elif move == "r":
-                shift_val = c + 1
-            else:
-                shift_val = r + 1
-            if 0 <= shift_val < 3:
-                poss_move.append(move)
-        return poss_move, r, c
+        # process all eight adjacent pixels of the current pixel and
+        # enqueue each valid pixel
+        for k in range(len(row)):
+            # if the adjacent pixel at position (x + row[k], y + col[k]) is
+            # is valid and has the same color as the current pixel
+            if isSafe(mat, x + row[k], y + col[k], target):
+                # enqueue adjacent pixel
+                q.append((x + row[k], y + col[k]))
 
 
-    def check_moves():
-        moves, row, col = predict_moves()
-        # print(moves, row, col)
-        for m in ["l", "r", "u", "d"]:
-            r = row
-            c = col
-            temp = copy.deepcopy(a)
-            if m not in moves:
-                moved_cost[m] = math.inf
-            else:
-                if m == "l":
-                    c = col - 1
-                elif m == "u":
-                    r = row - 1
-                elif m == "r":
-                    c = col + 1
-                else:
-                    r = row + 1
-                if c != col and row == r:
-                    # print(temp[row][c], temp[row][col])
-                    temp[row][c], temp[row][col] = temp[row][col], temp[row][c]
-                    # print(f"Executed col{c}<->col{col} in row{row}")
-                elif r != row and col == c:
-                    # print(temp[r][col], temp[row][col])
-                    temp[r][col], temp[row][col] = temp[row][col], temp[r][col]
-                    # print(f"Executed row{r}<->row{row} in col{col}")
-                # print_puzzle(temp)
-                calc_heuristic_val(temp, m)
-                # print(moved_cost)
-        final_move(row, col)
+if __name__ == '__main__':
+    # matrix showing portion of the screen having different colors
+    import random
 
+    colors = ['Y', 'R', 'B', 'G']
+    mat = []
+    v = 'R'
+    for _ in range(7):
+        temp = []
+        for i in range(7):
+            v = random.randint(0, len(colors) - 1)
+            temp.append(colors[v])
+        mat.append(temp)
 
-    def final_move(row, col):
-        r = row
-        c = col
-        min_cost = min(moved_cost, key=moved_cost.get)
-        if min_cost == "l":
-            c = col - 1
-        elif min_cost == "u":
-            r = row - 1
-        elif min_cost == "r":
-            c = col + 1
-        else:
-            r = row + 1
-        if c != col and row == r:
-            a[row][c], a[row][col] = a[row][col], a[row][c]
-        elif r != row and col == c:
-            a[r][col], a[row][col] = a[row][col], a[r][col]
-        heuristic_costs.append(moved_cost[min_cost])
+    # start node
 
+    for i in mat:
+        print(i)
+    print('-----'*10)
+    # having target color `X`
+    # replacement color
+    r = int(input("Enter x of pixels"))
+    c = int(input("Enter y of pixels"))
+    replacement = 'C'
+    floodfill(mat, r, c, replacement)
 
-    while a != g:
-        check_moves()
-        print_puzzle(a)
-        print("*" * 10)
-
-    print(heuristic_costs)
-else:
-    print("Not Solvable")
-
+    # print the colors after replacement
+    for r in mat:
+        print(r)
