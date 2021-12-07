@@ -6,10 +6,15 @@ row = [-1, -1, -1, 0, 0, 1, 1, 1]
 col = [-1, 0, 1, -1, 1, -1, 0, 1]
 
 
+# Takes rgb values of the color and text that is to be colored returns an ansi escape sequence for the color
 def colored(rd, gn, bl, text):
     return "\033[38;2;{};{};{}m{} \033[38;2;255;255;255m".format(rd, gn, bl, text)
 
 
+# prints the matrix whenever called
+# takes two args one the matrix and other is number of columns
+# For print formatting it checks if the number of columns are 1 digit or two digit numbers
+# if they are two digit numbers it decreases formatting delimiter by one else it uses the usual "3 delimits"
 def print_mat(matrix, columns):
     if columns < 9:
         print(" ", *[j for j in range(0, columns)], sep="   ", end="  ")
@@ -77,22 +82,21 @@ if __name__ == '__main__':
     rs = int(input("Enter Number of rows: "))
     cs = int(input("Enter Number of cols: "))
     colors = [colored(0, 255, 0, 'G'), colored(255, 0, 0, 'R'), colored(255, 255, 0, 'Y'), colored(153, 51, 255, 'P')]
-    matrice = []
+    gen_mat = []
     v = None
     for _ in range(rs):
         temp = []
         for i in range(cs):
             v = random.randint(0, len(colors) - 1)
             temp.append(colors[v])
-        matrice.append(temp)
+        gen_mat.append(temp)
     yes = 'y'
     while yes == 'y':
-        print_mat(matrice,cs)
+        print_mat(gen_mat, cs)
         r = int(input("Enter row number: "))
         c = int(input("Enter col number: "))
-        replaced = colored(153,255,255,'C')
-        flood_fill(matrice, r, c, replaced)
-        print_mat(matrice,cs)
+        replaced = colored(153, 255, 255, 'C')
+        flood_fill(gen_mat, r, c, replaced)
+        print_mat(gen_mat, cs)
         yes = input("Do you want to flood fill the matrix again (y/n):").lower()
     # print the colors after replacement
-
